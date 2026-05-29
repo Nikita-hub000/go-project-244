@@ -1,0 +1,9 @@
+/bin/
+/gendiff
+.gocache/
+*.exe
+*.test
+*.out
+.DS_Store
+/test_data/
+/testdata
