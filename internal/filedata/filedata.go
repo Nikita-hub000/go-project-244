@@ -2,10 +2,11 @@ package filedata
 
 import (
 	"code/internal/getdifference"
-	"encoding/json"
 	"fmt"
 	"os"
+	"parsers"
 	"path/filepath"
+	"strings"
 )
 
 func FileData(path1, path2 string) (string, error) {
@@ -18,20 +19,14 @@ func FileData(path1, path2 string) (string, error) {
 		return "", fmt.Errorf("failed to get file %s: %w", path2, err)
 	}
 
-	var encodedData1 map[string]any
-
-	err = json.Unmarshal(data1, &encodedData1)
-
+	encodedData1, err := parseByExt(path1, data1)
 	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal file %s: %w", path1, err)
+		return "", fmt.Errorf("failed to parse file %s: %w", path1, err)
 	}
 
-	var encodedData2 map[string]any
-
-	err = json.Unmarshal(data2, &encodedData2)
-
+	encodedData2, err := parseByExt(path2, data2)
 	if err != nil {
-		return "", fmt.Errorf("failed to unmarshal file %s: %w", path2, err)
+		return "", fmt.Errorf("failed to parse file %s: %w", path2, err)
 	}
 
 	answer := getdifference.GetDifference(encodedData1, encodedData2)
@@ -56,4 +51,13 @@ func getFile(path string) ([]byte, error) {
 		return []byte{}, fmt.Errorf("failed to read file %s: %w", filePath, err)
 	}
 	return file, nil
+}
+
+func parseByExt(path string, data []byte) (map[string]any, error) {
+	ext := strings.ToLower(filepath.Ext(path))
+	if ext == ".yml" || ext == ".yaml" {
+		return parsers.ParseYAML(data)
+	}
+
+	return parsers.ParseJSON(data)
 }
